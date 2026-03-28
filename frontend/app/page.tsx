@@ -1,50 +1,175 @@
+'use client'
+import { useState, useRef } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
+import { ChevronUp } from 'lucide-react'
+import { useSession } from '@/hooks/use-session'
+import { useProfile } from '@/hooks/use-profile'
+import { useWeatherSync } from '@/hooks/use-weather-sync'
+import { Orb } from '@/components/Orb'
+import { CheckinFlow } from '@/components/CheckinFlow'
+import { InsightsView } from '@/components/InsightsView'
+import { Onboarding } from '@/components/Onboarding'
+
+type AppState = 'home' | 'checkin' | 'insights'
+
 export default function Home() {
+  const sessionId                = useSession()
+  const { profile, isLoaded,
+          saveProfile }          = useProfile()
+  const { weather, isSolarMode } = useWeatherSync()
+  const [appState, setAppState]  = useState<AppState>('home')
+  const [holdData, setHoldData]  = useState({ durationMs: 0, latencyMs: 0 })
+  const [postCheckinNote,
+         setPostCheckinNote]     = useState<string | null>(null)
+  const touchStartY              = useRef(0)
+
+  function handleCheckinTrigger(durationMs: number, latencyMs: number) {
+    setHoldData({ durationMs, latencyMs })
+    setAppState('checkin')
+  }
+
+  function handleCheckinComplete(note?: string) {
+    if (note) setPostCheckinNote(note)
+    setAppState('insights')
+  }
+
+  function handleSwipeStart(e: React.TouchEvent) {
+    touchStartY.current = e.touches[0].clientY
+  }
+
+  function handleSwipeEnd(e: React.TouchEvent) {
+    const diff = touchStartY.current - e.changedTouches[0].clientY
+    if (diff > 40) setAppState('insights')
+  }
+
+  if (!sessionId || !isLoaded) return null
+  // Demo mode — view as Maya
+  const demoMode = typeof window !== 'undefined' &&
+    new URLSearchParams(window.location.search).get('demo') === 'maya'
+  const effectiveSession = demoMode ? 'demo_maya' : sessionId
+
+  if (!profile) {
+    return <Onboarding onComplete={saveProfile} />
+  }
+
+  const tintHue = profile.tintHue ?? 270
+
   return (
-    <div className="max-w-2xl mx-auto px-6 py-24 text-center">
-      <div className="text-6xl mb-6">🌑</div>
-      <h1 className="text-5xl font-semibold text-gray-900 mb-3 leading-tight">
-        Chhaya
-      </h1>
-      <p className="text-2xl text-gray-400 mb-4 font-light">छाया</p>
-      <p className="text-lg text-gray-500 mb-2 italic">
-        "Your shadow knows before you do."
-      </p>
-      <p className="text-gray-400 text-base mb-12 leading-relaxed max-w-lg mx-auto">
-        A behavioral awareness companion for college students.
-        Chhaya watches your patterns silently — and speaks up
-        when something shifts, before you feel it yourself.
-      </p>
-      <div className="grid grid-cols-1 gap-3 max-w-sm mx-auto mb-12">
-        <a href="/onboarding"
-          className="bg-gray-900 text-white px-6 py-4 rounded-2xl font-medium hover:bg-gray-700 transition text-center">
-          Get started →
-        </a>
-        <a href="/dashboard?user=demo_maya"
-          className="bg-white border border-gray-200 text-gray-700 px-6 py-4 rounded-2xl font-medium hover:bg-gray-50 transition text-center">
-          View Maya's dashboard
-        </a>
-        <a href="/insight?user=demo_maya"
-          className="bg-white border border-gray-200 text-gray-700 px-6 py-4 rounded-2xl font-medium hover:bg-gray-50 transition text-center">
-          Get Chhaya's insight
-        </a>
-      </div>
-      <div className="grid grid-cols-3 gap-6 text-center max-w-lg mx-auto">
-        {[
-          { icon: "🌙", label: "Sleep patterns" },
-          { icon: "📚", label: "Class attendance" },
-          { icon: "🚶", label: "Daily movement" },
-        ].map(f => (
-          <div key={f.label} className="bg-white rounded-2xl border border-gray-100 p-4">
-            <div className="text-2xl mb-2">{f.icon}</div>
-            <div className="text-xs text-gray-400">{f.label}</div>
-          </div>
+    <div className="relative min-h-[100dvh] w-full overflow-hidden flex flex-col"
+         style={{ background: '#080f0c', color: 'white' }}>
+
+      <style>{`:root { --tint-hue: ${tintHue}; }`}</style>
+
+      {/* Background glow */}
+      <div className="absolute inset-0 pointer-events-none"
+           style={{
+             background: `radial-gradient(ellipse at 50% 60%,
+               hsla(${tintHue},40%,15%,0.4) 0%,
+               transparent 70%)`,
+           }} />
+
+      {/* Floating particles */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        {Array.from({ length: 12 }).map((_, i) => (
+          <motion.div key={i}
+            className="absolute w-1 h-1 rounded-full"
+            style={{
+              left:       `${10 + (i * 7.5) % 80}%`,
+              top:        `${15 + (i * 11) % 70}%`,
+              background: `hsla(${tintHue},60%,50%,0.4)`,
+            }}
+            animate={{
+              y:       [-10, 10, -10],
+              opacity: [0.2, 0.6, 0.2]
+            }}
+            transition={{
+              duration: 3 + i * 0.4,
+              repeat:   Infinity,
+              ease:     'easeInOut',
+              delay:    i * 0.3
+            }}
+          />
         ))}
       </div>
-      <p className="mt-12 text-xs text-gray-300 max-w-md mx-auto">
-        Chhaya is a behavioral tracking tool, not a medical application.
-        It does not diagnose or treat any condition.
-        If you are in crisis, please text HOME to 741741.
-      </p>
+
+      <AnimatePresence mode="wait">
+
+        {/* Home — The Orb */}
+        {appState === 'home' && (
+          <motion.div key="home"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, scale: 0.97, filter: 'blur(8px)' }}
+            transition={{ duration: 0.6 }}
+            className="flex-1 flex flex-col items-center
+                       justify-between w-full py-12">
+
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 0.4, y: 0 }}
+              transition={{ delay: 0.5 }}
+              className="text-xs tracking-[0.4em] text-white/40 uppercase">
+              Chhaya · छाया
+            </motion.div>
+
+            <div className="flex-1 flex items-center justify-center w-full">
+              <Orb
+                isSolarMode={isSolarMode}
+                onCheckinTrigger={handleCheckinTrigger}
+              />
+            </div>
+
+            <div className="flex flex-col items-center gap-2 pb-2
+                            cursor-pointer select-none"
+                 onClick={() => setAppState('insights')}
+                 onTouchStart={handleSwipeStart}
+                 onTouchEnd={handleSwipeEnd}>
+              <motion.div
+                animate={{
+                  y:       [0, -6, 0],
+                  opacity: [0.3, 0.8, 0.3]
+                }}
+                transition={{ duration: 2, repeat: Infinity }}
+                className="flex flex-col items-center gap-1.5 text-white/40">
+                <ChevronUp size={22} />
+                <span className="text-[10px] tracking-[0.25em] uppercase">
+                  Insights
+                </span>
+              </motion.div>
+            </div>
+
+          </motion.div>
+        )}
+
+        {/* Check-in Flow */}
+        {appState === 'checkin' && (
+          <CheckinFlow
+            key="checkin"
+            sessionId={effectiveSession}
+            lat={null}
+            lon={null}
+            holdDurationMs={holdData.durationMs}
+            interactionLatencyMs={holdData.latencyMs}
+            onComplete={handleCheckinComplete}
+          />
+        )}
+
+        {/* Insights */}
+        {appState === 'insights' && (
+          <InsightsView
+            key="insights"
+            sessionId={effectiveSession}
+            weather={weather}
+            postCheckinNote={postCheckinNote}
+            userName={profile.name}
+            onClose={() => {
+              setPostCheckinNote(null)
+              setAppState('home')
+            }}
+          />
+        )}
+
+      </AnimatePresence>
     </div>
   )
 }
