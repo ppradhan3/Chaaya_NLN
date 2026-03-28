@@ -1,0 +1,74 @@
+[
+  {
+    "week": 1,
+    "label": "Week 1 — Fresh Start",
+    "known_stress_level": 1,
+    "description": "New semester energy. Optimism is high. Workload feels manageable."
+  },
+  {
+    "week": 2,
+    "label": "Week 2 — Settling In",
+    "known_stress_level": 1,
+    "description": "Routines forming. Social energy still high. First assignments appear."
+  },
+  {
+    "week": 3,
+    "label": "Week 3 — The Grind Begins",
+    "known_stress_level": 2,
+    "description": "Novelty has worn off. Workload picks up. Sleep starts slipping."
+  },
+  {
+    "week": 4,
+    "label": "Week 4 — First Pressure",
+    "known_stress_level": 2,
+    "description": "First deadlines hit. Students begin feeling behind for the first time."
+  },
+  {
+    "week": 5,
+    "label": "Week 5 — Building Anxiety",
+    "known_stress_level": 3,
+    "description": "Midterms visible on the horizon. Weather turning. Days getting shorter."
+  },
+  {
+    "week": 6,
+    "label": "Week 6 — Midterm Buildup",
+    "known_stress_level": 4,
+    "description": "Peak pre-midterm anxiety. Sleep deprivation common. Social withdrawal begins."
+  },
+  {
+    "week": 7,
+    "label": "Week 7 — The Wall",
+    "known_stress_level": 5,
+    "description": "The hardest week. Midterms. Cold weather. Shortened daylight. Isolation peaks."
+  },
+  {
+    "week": 8,
+    "label": "Week 8 — False Recovery",
+    "known_stress_level": 3,
+    "description": "Midterms over but students are depleted. Dangerous overcompensation period."
+  },
+  {
+    "week": 9,
+    "label": "Week 9 — The Dark Stretch",
+    "known_stress_level": 4,
+    "description": "Most underestimated week. Finals not here yet but pressure mounts silently."
+  },
+  {
+    "week": 10,
+    "label": "Week 10 — Late Semester Grind",
+    "known_stress_level": 4,
+    "description": "Caffeine dependency peaks. Motivation at its lowest. Light at end of tunnel not visible."
+  },
+  {
+    "week": 11,
+    "label": "Week 11 — Finals Approach",
+    "known_stress_level": 5,
+    "description": "Final projects and papers collide. Students making difficult tradeoffs."
+  },
+  {
+    "week": 12,
+    "label": "Week 12 — Finals",
+    "known_stress_level": 5,
+    "description": "Peak academic stress. Adrenaline kicks in. Community suffering together."
+  }
+]
