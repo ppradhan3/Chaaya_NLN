@@ -2,11 +2,14 @@
 import { useState, useEffect } from 'react'
 
 export interface UserProfile {
-  name:          string
-  tintHue:       number
-  university?:   string
-  semesterStart?: string
-  city?:         string
+  name:           string;
+  university:     string;
+  semesterStart:  string;
+  finalsStart:    string; // Added for academic countdown
+  semesterEnd:    string; // Added for term boundaries
+  city:           string;
+  tintHue:        number;
+  id?:            string;
 }
 
 export const TINT_OPTIONS = [

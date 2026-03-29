@@ -1,92 +1,64 @@
-from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
-from typing import Optional
-from datetime import date as dt
-import httpx, os
-from graph.queries import (save_checkin, get_user,
-                           get_semester_week, create_user)
+# from fastapi import APIRouter, HTTPException
+# from pydantic import BaseModel
+# from typing import Optional
+# from datetime import date as dt
+# import os
+# from graph.queries import save_checkin, get_user, get_semester_week
 
-router = APIRouter()
+# router = APIRouter()
 
-cclass ChhayaCheckin(BaseModel):
-    sessionId:            str
-    attendedClass:        bool
-    ateWell:              bool
-    maskingLevel:         int
-    holdDurationMs:       Optional[float] = 0
-    interactionLatencyMs: Optional[float] = 0
-    lat:                  Optional[float] = None
-    lon:                  Optional[float] = None
-    leftRoom:             Optional[bool]  = None
-    hadSunlightExposure:  Optional[bool]  = None
-    city:                 Optional[str]   = "New York"
+# class ChhayaCheckin(BaseModel):
+#     sessionId:            str
+#     attendedClass:        bool
+#     ateWell:              bool
+#     maskingLevel:         int
+#     # REMOVED: hardcoded defaults for bio-signals
+#     wakeTime:             float  # 7.5 = 7:30am
+#     sleepHours:           float
+#     leftRoom:             bool
+#     hadSunlightExposure:  bool
+#     city:                 Optional[str] = "New York"
+#     note:                 Optional[str] = ""
 
-async def fetch_weather(city: str = "New York"):
-    key = os.getenv("OPENWEATHER_API_KEY", "")
-    if not key:
-        return {"temp": 55, "desc": "Clear", "sunlight": 8}
-    try:
-        async with httpx.AsyncClient() as client:
-            r = await client.get(
-                "https://api.openweathermap.org/data/2.5/weather",
-                params={"q": city, "appid": key, "units": "imperial"},
-                timeout=5
-            )
-            d = r.json()
-            return {
-                "temp":     round(d["main"]["temp"], 1),
-                "desc":     d["weather"][0]["description"].title(),
-                "sunlight": 8
-            }
-    except Exception:
-        return {"temp": 55, "desc": "Clear", "sunlight": 8}
+# @router.post("")
+# async def checkin_chhaya(body: ChhayaCheckin):
+#     uid  = body.sessionId
+#     user = get_user(uid)
 
-@router.post("")
-async def checkin_chhaya(body: ChhayaCheckin):
-    uid  = body.sessionId
-    user = get_user(uid)
+#     # FIX: No more auto-creating users with hardcoded 6-week offsets.
+#     # Users should be created via /users/ during onboarding.
+#     if not user:
+#         raise HTTPException(status_code=404, detail="User not found. Please onboard first.")
 
-    # Auto-create user if first time
-    if not user:
-        from datetime import datetime, timedelta
-        semester_start = (
-            datetime.now() - timedelta(weeks=6)
-        ).strftime("%Y-%m-%d")
-        create_user(
-            uid            = uid,
-            name           = "Student",
-            university     = "University",
-            semester_start = semester_start
-        )
-        user = get_user(uid)
+#     today   = str(dt.today())
+#     # Use the helper function already in your file to get weather
+#     from .checkin import fetch_weather 
+#     weather = await fetch_weather(body.city or "New York")
+    
+#     # Dynamically calculate the week based on the user's actual start date
+#     week = get_semester_week(user["semester_start"])
 
-    today   = str(dt.today())
-    weather = await fetch_weather(body.city or "New York")
-    week    = get_semester_week(user["semester_start"])
+#     save_checkin(
+#         uid                = uid,
+#         date               = today,
+#         attended_class     = body.attendedClass,
+#         wake_time          = body.wakeTime,      # Now Dynamic
+#         left_room          = body.leftRoom,      # Now Dynamic
+#         ate_meal           = body.ateWell,
+#         performance_gap    = body.maskingLevel,
+#         sleep_hours        = body.sleepHours,    # Now Dynamic
+#         note               = body.note,
+#         weather_temp       = weather["temp"],
+#         weather_desc       = weather["desc"],
+#         sunlight_hours     = weather["sunlight"],
+#         week_number        = week,
+#         cognitive_friction = False, 
+#         actual_sunlight    = body.hadSunlightExposure,
+#         completion_sense   = True
+#     )
 
-    save_checkin(
-        uid                = uid,
-        date               = today,
-        attended_class     = body.attendedClass,
-        wake_time          = 8,
-        left_room          = body.leftRoom
-                             if body.leftRoom is not None else True,
-        ate_meal           = body.ateWell,
-        performance_gap    = body.maskingLevel,
-        sleep_hours        = 7,
-        note               = "",
-        weather_temp       = weather["temp"],
-        weather_desc       = weather["desc"],
-        sunlight_hours     = weather["sunlight"],
-        week_number        = week,
-        cognitive_friction = False,
-        actual_sunlight    = body.hadSunlightExposure or False,
-        completion_sense   = True
-    )
-
-    return {
-        "status":      "saved",
-        "date":        today,
-        "week_number": week,
-        "sessionId":   uid
-    }
+#     return {
+#         "status": "saved",
+#         "week_number": week,
+#         "signals_tracked": ["sleep", "wake", "attendance", "isolation", "nutrition"]
+#     }

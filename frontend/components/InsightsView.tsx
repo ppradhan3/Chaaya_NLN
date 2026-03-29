@@ -1,8 +1,14 @@
 'use client'
-import { ChhayaPanel } from '@/components/panels/ChhayaPanel'
 import { useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronDown, Flower2, Sparkles, Radio, Target, Eye } from 'lucide-react'
+
+// 1. REAL IMPORTS
+import { ChhayaPanel } from '@/components/panels/ChhayaPanel'
+import { GardenPanel } from '@/components/panels/GardenPanel'
+import { NotePanel } from '@/components/panels/NotePanel'
+import { PulsePanel } from '@/components/panels/PulsePanel'
+import { FocusPanel } from '@/components/panels/FocusPanel'
 import type { WeatherData } from '@/hooks/use-weather-sync'
 
 interface InsightsViewProps {
@@ -14,11 +20,11 @@ interface InsightsViewProps {
 }
 
 const TABS = [
-  { id: 'chhaya', icon: Eye,     label: 'Chhaya'  },
-  { id: 'garden', icon: Flower2, label: 'Garden'  },
-  { id: 'note',   icon: Sparkles,label: 'Chaaya'    },
-  { id: 'pulse',  icon: Radio,   label: 'Pulse'   },
-  { id: 'focus',  icon: Target,  label: 'Focus'   },
+  { id: 'chhaya', icon: Eye,      label: 'Chhaya'  },
+  { id: 'garden', icon: Flower2,  label: 'Garden'  },
+  { id: 'note',   icon: Sparkles, label: 'Reflection' },
+  { id: 'pulse',  icon: Radio,    label: 'Pulse'   },
+  { id: 'focus',  icon: Target,   label: 'Focus'   },
 ] as const
 
 type TabId = (typeof TABS)[number]['id']
@@ -26,9 +32,9 @@ type TabId = (typeof TABS)[number]['id']
 export function InsightsView({
   sessionId, weather, postCheckinNote, userName, onClose
 }: InsightsViewProps) {
-  const [activeTab,  setActiveTab]  = useState<TabId>('chhaya')
-  const touchStartX                 = useRef(0)
-  const touchStartY                 = useRef(0)
+  const [activeTab, setActiveTab] = useState<TabId>('chhaya')
+  const touchStartX = useRef(0)
+  const touchStartY = useRef(0)
 
   function handleTouchStart(e: React.TouchEvent) {
     touchStartX.current = e.touches[0].clientX
@@ -100,103 +106,39 @@ export function InsightsView({
         <AnimatePresence mode="wait">
           <motion.div key={activeTab}
             className="h-full w-full overflow-y-auto"
-            initial={{ opacity: 0, x: 30  }}
+            initial={{ opacity: 0, x: 20  }}
             animate={{ opacity: 1, x: 0   }}
-            exit={{   opacity: 0, x: -30 }}
-            transition={{ duration: 0.25 }}>
+            exit={{   opacity: 0, x: -20 }}
+            transition={{ duration: 0.2 }}>
 
             {activeTab === 'chhaya' && (
-              <ChhayaPanel
-                sessionId={sessionId}
-                userName={userName}
-              />
+              <ChhayaPanel sessionId={sessionId} userName={userName} />
             )}
+            
             {activeTab === 'garden' && (
               <GardenPanel sessionId={sessionId} />
             )}
+            
             {activeTab === 'note' && (
-              <NotePanel
-                sessionId={sessionId}
-                weather={weather}
+              <NotePanel 
+                sessionId={sessionId} 
+                weather={weather} 
                 userName={userName}
+                initialNote={postCheckinNote} 
               />
             )}
+            
             {activeTab === 'pulse' && (
               <PulsePanel />
             )}
+            
             {activeTab === 'focus' && (
-              <FocusPanel
-                sessionId={sessionId}
-                weather={weather}
-              />
+              <FocusPanel sessionId={sessionId} weather={weather} />
             )}
 
           </motion.div>
         </AnimatePresence>
       </div>
-
     </motion.div>
-  )
-}
-
-// // ─── Placeholder panels ───────────────────────────────────────
-// // These will be replaced with the full panel files next
-
-// function ChhayaPanel({ sessionId, userName }: {
-//   sessionId: string; userName: string
-// }) {
-//   return (
-//     <div className="flex items-center justify-center h-full">
-//       <p className="text-white/30 text-sm">
-//         Chhaya panel — loading...
-//       </p>
-//     </div>
-//   )
-// }
-
-function GardenPanel({ sessionId }: { sessionId: string }) {
-  return (
-    <div className="flex items-center justify-center h-full">
-      <p className="text-white/30 text-sm">
-        Garden panel — loading...
-      </p>
-    </div>
-  )
-}
-
-function NotePanel({ sessionId, weather, userName }: {
-  sessionId: string
-  weather:   WeatherData | undefined
-  userName?: string
-}) {
-  return (
-    <div className="flex items-center justify-center h-full">
-      <p className="text-white/30 text-sm">
-        Chaaya panel — loading...
-      </p>
-    </div>
-  )
-}
-
-function PulsePanel() {
-  return (
-    <div className="flex items-center justify-center h-full">
-      <p className="text-white/30 text-sm">
-        Pulse panel — loading...
-      </p>
-    </div>
-  )
-}
-
-function FocusPanel({ sessionId, weather }: {
-  sessionId: string
-  weather:   WeatherData | undefined
-}) {
-  return (
-    <div className="flex items-center justify-center h-full">
-      <p className="text-white/30 text-sm">
-        Focus panel — loading...
-      </p>
-    </div>
   )
 }
